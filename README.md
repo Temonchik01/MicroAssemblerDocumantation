@@ -334,4 +334,47 @@ link ewh : 16
 | `CJA <У> <А>`  | Умовний перехід до мікропідпрограми по зазначеній адресі (мітки)                               |
 | `CRTN <У>` | Умовне повернення з мікропідпрограми|
 
+Приклад по Колоку
+``` 
+link l1:ct
 
+accept r1:0000h \Z
+accept r2:0009h \X
+accept r3:0fffbh \Y
+accept rq:0010h \CT
+
+macro znak reg1, reg2:{and reg2, reg1, 0c00h; load rm, flags;} \Perevirka znaka ta zapis v reg2 ta oznaka
+macro modul reg:{sub reg, z, reg, nz;} \Bere chislo v modul
+macro mov reg1, reg2:{or reg2, reg1;} \Perenosit chislo z reg1 v reg2
+macro sum reg1, reg2:{add reg1, reg2, z;} \Dodaye do reg1 reg2
+macro dec reg:{sub reg, reg, z, z;}\Decrument lichulnuka
+
+znak_x
+{znak r2, r4;}
+{cjp rm_z, znak_y;}
+{modul r2;}
+
+znak_y
+{znak r3, r5;}
+{cjp rm_z, znak_z;}
+{modul r3;}
+
+znak_z
+{mov r4, r6;}
+{xor r6, r5; load rm, z;} \Zapis znaku rezultata
+
+m1
+{or srl, nil, r2, z;} \RG2[1]
+{cjp not rm_c, m2;} \RG2[1]=1?
+{sum r1, r3;} \RG1:=RG1+RG2
+
+m2
+{or srl, r1, z;} \RG1:=0.r(RG1)
+{or sr.9, r2, z;} \RG2:=RG[1].r(RG2)
+{dec rq; load rm, flags; cem_c;} \CT:=CT-1
+{cjp not rm_z, m1;} \CT=0?
+
+{mov r13, r1;}
+{mov r14, r2;}
+{or r13, r13, r6;}
+``` 
